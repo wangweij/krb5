@@ -178,6 +178,13 @@ WRAP_VOID (krb5_db2_audit_as_req,
             krb5_timestamp authtime, krb5_error_code error_code),
            (kcontext, request, client, server, authtime, error_code));
 
+WRAP_K (krb5_db2_check_allowed_to_delegate,
+        (krb5_context kcontext,
+         krb5_const_principal client,
+         const krb5_db_entry *server,
+         krb5_const_principal proxy),
+        (kcontext, client, server, proxy));
+
 static krb5_error_code
 hack_init (void)
 {
@@ -233,5 +240,6 @@ kdb_vftabl PLUGIN_SYMBOL_NAME(krb5_db2, kdb_function_table) = {
     /* check_policy_as */               wrap_krb5_db2_check_policy_as,
     0,
     /* audit_as_req */                  wrap_krb5_db2_audit_as_req,
-    0, 0
+    0,
+    /* check_allowed_to_delegate */     wrap_krb5_db2_check_allowed_to_delegate
 };

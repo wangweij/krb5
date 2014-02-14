@@ -1406,3 +1406,54 @@ krb5_db2_audit_as_req(krb5_context kcontext, krb5_kdc_req *request,
 {
     (void) krb5_db2_lockout_audit(kcontext, client, authtime, error_code);
 }
+
+/*
+ * Use the "allowed_to_delegate_to" string attribute to determine when
+ * S4U2proxy can be performed. The value should take the form of
+ *
+ *     proxy1 proxy2...
+ *
+ * proxy1 (and proxy2...) can also be * to match all principals. It
+ * MUST NOT include the realm name.
+ */
+krb5_error_code
+krb5_db2_check_allowed_to_delegate(krb5_context kcontext,
+                                   krb5_const_principal client,
+                                   const krb5_db_entry *server,
+                                   krb5_const_principal proxy)
+{
+    char *proxy_name = NULL;
+    char *conf = NULL;
+    krb5_error_code retval;;
+
+    if (retval = krb5_unparse_name_flags(kcontext, proxy,
+            KRB5_PRINCIPAL_UNPARSE_SHORT, &proxy_name)) {
+        goto cleanup;
+    }
+
+    if (retval = krb5_dbe_get_string(kcontext, server,
+            "allowed_to_delegate_to", &conf)) {
+        goto cleanup;
+    }
+
+    retval = KRB5KDC_ERR_POLICY;
+    if (conf != NULL) {
+        char *name_r;
+        char *name = strtok_r(conf, " ", &name_r);
+        while (name != NULL) {
+            if (!strcmp(name, "*") || !strcmp(name, proxy_name)) {
+                retval = 0;
+                goto cleanup;
+            }
+            name = strtok_r(NULL, ",;", &name_r);
+        }
+    }
+
+cleanup:
+    if (conf)
+        krb5_dbe_free_string(kcontext, conf);
+    if (proxy_name)
+        krb5_free_unparsed_name(kcontext, proxy_name);
+
+    return retval;
+}

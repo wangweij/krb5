@@ -140,4 +140,9 @@ krb5_db2_audit_as_req(krb5_context kcontext, krb5_kdc_req *request,
                       krb5_db_entry *client, krb5_db_entry *server,
                       krb5_timestamp authtime, krb5_error_code error_code);
 
+krb5_error_code
+krb5_db2_check_allowed_to_delegate(krb5_context kcontext,
+                                  krb5_const_principal client,
+                                  const krb5_db_entry *server,
+                                  krb5_const_principal proxy);
 #endif /* KRB5_KDB_DB2_H */
